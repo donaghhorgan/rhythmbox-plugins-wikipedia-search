@@ -11,8 +11,8 @@ Search for selected artist, album, track or genre at the click of a button.
 
 === Usage ===
 
-To install, copy the 'Wikipedia' directory and its contents 
-to ~/.local/share/rhythmbox/plugins/.
+To install, run the 'install.sh' file or copy the 'Wikipedia' directory and 
+its contents to ~/.local/share/rhythmbox/plugins/.
 
 
 === Thanks ===
