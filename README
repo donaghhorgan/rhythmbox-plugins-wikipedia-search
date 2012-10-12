@@ -1,0 +1,36 @@
+Wikipedia.py
+
+Search for selected artist, album, track or genre at the click of a button.
+
+
+=== Dependencies ===
+
+  * rhythmbox		    >= 	2.98
+  * pygtk/gobject
+
+
+=== Usage ===
+
+To install, copy the 'Wikipedia' directory and its contents 
+to ~/.local/share/rhythmbox/plugins/.
+
+
+=== Thanks ===
+
+Inspired by WebMenu by Andrea Franco.
+
+
+=== Contact ===
+
+Donagh Horgan
+E-mail: donagh.horgan@gmail.com
+
+
+=== Copyright ===
+
+Copyright (C) 2012 Donagh Horgan.
+
+
+=== License ===
+
+Licensed under GPLv3, see COPYING for more info.
