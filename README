@@ -1,4 +1,4 @@
-Wikipedia.py
+WikipediaSearch
 
 Search for selected artist, album, track or genre at the click of a button.
 
@@ -11,7 +11,7 @@ Search for selected artist, album, track or genre at the click of a button.
 
 === Usage ===
 
-To install, run the 'install.sh' file or copy the 'Wikipedia' directory and 
+To install, run the 'install.sh' file or copy the 'WikipediaSearch' directory and 
 its contents to ~/.local/share/rhythmbox/plugins/.
 
 
