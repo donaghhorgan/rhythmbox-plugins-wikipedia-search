@@ -4,7 +4,7 @@
 #
 #    Search for selected artist, album, track or genre at the click of a 
 #    button.
-#    Copyright (C) 2012 Donagh Horgan <donaghhorgan@gmail.com>
+#    Copyright (C) 2012-2013 Donagh Horgan <donagh.horgan@gmail.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ ui_str = """
 </ui>
 """
 
-class Wikipedia (GObject.Object, Peas.Activatable):
+class WikipediaSearchPlugin (GObject.Object, Peas.Activatable):
 	object = GObject.property (type = GObject.Object)
 
 	def __init__(self):
@@ -92,30 +92,30 @@ class Wikipedia (GObject.Object, Peas.Activatable):
 		
 		data['action_group'] = Gtk.ActionGroup(name='WikipediaActions')
 
-		action = Gtk.Action(name='SearchWikipedia', label=_("_Search Wikipedia"),
+		action = Gtk.Action(name='SearchWikipedia', label=_("Search Wikipedia"),
 		                    tooltip=_("Search Wikipedia"),
 		                    stock_id='gnome-mime-text-x-python')
 		data['action_group'].add_action(action)
 
-		action = Gtk.Action(name='SearchWikipediaArtist', label=_("_Artist"),
+		action = Gtk.Action(name='SearchWikipediaArtist', label=_("Artist"),
 		                    tooltip=_("Search selected artist on Wikipedia"),
 		                    stock_id='gnome-mime-text-x-python')
 		action.connect('activate', self.search_artist, shell)
 		data['action_group'].add_action(action)
 
-		action = Gtk.Action(name='SearchWikipediaAlbum', label=_("_Album"),
+		action = Gtk.Action(name='SearchWikipediaAlbum', label=_("Album"),
 		                    tooltip=_("Search selected album on Wikipedia"),
 		                    stock_id='gnome-mime-text-x-python')
 		action.connect('activate', self.search_album, shell)
 		data['action_group'].add_action(action)
 
-		action = Gtk.Action(name='SearchWikipediaTrack', label=_("_Track"),
+		action = Gtk.Action(name='SearchWikipediaTrack', label=_("Track"),
 		                    tooltip=_("Search selected track on Wikipedia"),
 		                    stock_id='gnome-mime-text-x-python')
 		action.connect('activate', self.search_track, shell)
 		data['action_group'].add_action(action)
 
-		action = Gtk.Action(name='SearchWikipediaGenre', label=_("_Genre"),
+		action = Gtk.Action(name='SearchWikipediaGenre', label=_("Genre"),
 		                    tooltip=_("Search selected genre on Wikipedia"),
 		                    stock_id='gnome-mime-text-x-python')
 		action.connect('activate', self.search_genre, shell)
