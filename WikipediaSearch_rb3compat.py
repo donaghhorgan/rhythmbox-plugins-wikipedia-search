@@ -586,22 +586,13 @@ class ApplicationShell(object):
             :param group_name: `str` unique name of the ActionGroup to add menu items to
             '''
             if is_rb3(self.shell):
+                app = Gio.Application.get_default()
+                group = self._action_groups[group_name]
+                
                 root = ET.fromstring(ui_string)
-                for elem in root.findall("./popup"):
-                    popup_name = elem.attrib['name']
-                    
-                    menuelem = elem.find('.//menuitem')
-                    action_name = menuelem.attrib['action']
-                    item_name = menuelem.attrib['name']
-                    
-                    group = self._action_groups[group_name]
-                    act = group.get_action(action_name)
-                    
-                    item = Gio.MenuItem()
-                    item.set_detailed_action('win.' + action_name)
-                    item.set_label(act.label)
-                    app = Gio.Application.get_default()
-                    
+                popups = root.findall("./popup")
+                for popup in popups:
+                    popup_name = popup.attrib['name']
                     if popup_name == 'QueuePlaylistViewPopup':
                         plugin_type = 'queue-popup'
                     elif popup_name == 'BrowserSourceViewPopup':
@@ -611,11 +602,56 @@ class ApplicationShell(object):
                     elif popup_name == 'PodcastViewPopup':
                         plugin_type = 'podcast-episode-popup'
                     else:
-                        print "unknown type %s" % plugin_type
-                        
-                    index = plugin_type+action_name
-                    app.add_plugin_menu_item(plugin_type, index, item)
-                    self._uids[index]=plugin_type
+                        print "unknown type %s" % popup_name
+                    
+                    submenus = popup.findall('.//menu')
+                    if submenus:
+                        # Iterate through submenus, add menu items to each 
+                        # and add each sub menu to the app
+                        for submenu in submenus:
+                            menu = Gio.Menu()
+                                                        
+                            submenu_items = submenu.findall('.//menuitem')
+                            for submenu_item in submenu_items:
+                                submenu_item_name = submenu_item.attrib['name']
+                                submenu_item_action = submenu_item.attrib['action']
+                                
+                                act = group.get_action(submenu_item_action)
+
+                                submenu_item = Gio.MenuItem()
+                                submenu_item.set_detailed_action('win.' + submenu_item_action)
+                                submenu_item.set_label(act.label)
+                                
+                                menu.append_item(submenu_item)
+                            
+                            submenu_name = submenu.attrib['name']
+                            submenu_action = submenu.attrib['action']
+                            
+                            act = group.get_action(submenu_action)
+                            
+                            item = Gio.MenuItem()
+                            item.set_label(act.label)
+                            item.set_submenu(menu)
+                            
+                            index = plugin_type+submenu_name
+                            app.add_plugin_menu_item(plugin_type, index, item)
+                            self._uids[index]=plugin_type
+                    else:
+                        # Iterate through menu items and add each to app
+                        menu_items = popup.findall('.//menuitem')
+                        for menu_item in menu_items:
+                            menu_item_name = menu_item.attrib['name']
+                            menu_item_action = menu_item.attrib['action']
+
+                            act = group.get_action(menu_item_action)
+                            
+                            item = Gio.MenuItem()
+                            item.set_detailed_action('win.' + menu_item_action)
+                            item.set_label(act.label)
+                                
+                            index = plugin_type+menu_item_name
+                            app.add_plugin_menu_item(plugin_type, index, item)
+                            self._uids[index]=plugin_type
             else:
                 uim = self.shell.props.ui_manager
                 self._uids.append(uim.add_ui_from_string(ui_string))
