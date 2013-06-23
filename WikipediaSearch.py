@@ -189,6 +189,6 @@ class WikipediaSearchPlugin (GObject.Object, Peas.Activatable):
     def search_genre (self, action, shell, *args):
         self.search_wikipedia('genre')
     
-    def null_function(self):
+    def null_function(self, action, shell, *args):
         pass
 
