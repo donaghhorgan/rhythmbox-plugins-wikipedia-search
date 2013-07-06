@@ -23,15 +23,10 @@ from gi.repository import GObject
 from gi.repository import Peas
 from gi.repository import RB
 from gi.repository import Gtk
+from gi.repository import Gio
 
 import webbrowser
-import urllib2
-
-# Rhythmbox compatibility module
-import WikipediaSearch_rb3compat as rb3compat
-from WikipediaSearch_rb3compat import ActionGroup
-from WikipediaSearch_rb3compat import Action
-from WikipediaSearch_rb3compat import ApplicationShell
+import urllib.request, urllib.error, urllib.parse
 
 class WikipediaSearchPlugin (GObject.Object, Peas.Activatable):
     object = GObject.property (type = GObject.Object)
@@ -49,110 +44,58 @@ class WikipediaSearchPlugin (GObject.Object, Peas.Activatable):
     def do_activate(self):
         self.log(self.do_activate.__name__, 'Activating plugin...')
         
-        ui_str = '''
-        <ui>
-          <popup name="BrowserSourceViewPopup">
-            <placeholder name="PluginPlaceholder">
-              <menu name="BrowserSourcePopupPlaylistAdd" action="SearchWikipedia">
-                <menuitem name="SearchWikipediaArtistPopup" action="SearchWikipediaArtist"/>
-                <menuitem name="SearchWikipediaAlbumPopup" action="SearchWikipediaAlbum"/>
-                <menuitem name="SearchWikipediaTrackPopup" action="SearchWikipediaTrack"/>
-                <menuitem name="SearchWikipediaGenrePopup" action="SearchWikipediaGenre"/>
-                <separator/>
-                <placeholder name="BrowserSourcePopupPlaylistAddPlaceholder"/>
-              </menu>
-            </placeholder>
-          </popup>
-          <popup name="PlaylistViewPopup">
-            <placeholder name="PluginPlaceholder">
-              <menu name="BrowserSourcePopupPlaylistAdd" action="SearchWikipedia">
-                <menuitem name="SearchWikipediaArtistPopup" action="SearchWikipediaArtist"/>
-                <menuitem name="SearchWikipediaAlbumPopup" action="SearchWikipediaAlbum"/>
-                <menuitem name="SearchWikipediaTrackPopup" action="SearchWikipediaTrack"/>
-                <menuitem name="SearchWikipediaGenrePopup" action="SearchWikipediaGenre"/>
-                <separator/>
-                <placeholder name="BrowserSourcePopupPlaylistAddPlaceholder"/>
-              </menu>
-            </placeholder>
-          </popup>
-          <popup name="QueuePlaylistViewPopup">
-            <placeholder name="PluginPlaceholder">
-              <menu name="BrowserSourcePopupPlaylistAdd" action="SearchWikipedia">
-                <menuitem name="SearchWikipediaArtistPopup" action="SearchWikipediaArtist"/>
-                <menuitem name="SearchWikipediaAlbumPopup" action="SearchWikipediaAlbum"/>
-                <menuitem name="SearchWikipediaTrackPopup" action="SearchWikipediaTrack"/>
-                <menuitem name="SearchWikipediaGenrePopup" action="SearchWikipediaGenre"/>
-                <separator/>
-                <placeholder name="BrowserSourcePopupPlaylistAddPlaceholder"/>
-              </menu>
-            </placeholder>
-          </popup>
-          <popup name="PodcastViewPopup">
-            <placeholder name="PluginPlaceholder">
-              <menu name="BrowserSourcePopupPlaylistAdd" action="SearchWikipedia">
-                <menuitem name="SearchWikipediaArtistPopup" action="SearchWikipediaArtist"/>
-                <menuitem name="SearchWikipediaAlbumPopup" action="SearchWikipediaAlbum"/>
-                <menuitem name="SearchWikipediaTrackPopup" action="SearchWikipediaTrack"/>
-                <menuitem name="SearchWikipediaGenrePopup" action="SearchWikipediaGenre"/>
-                <separator/>
-                <placeholder name="BrowserSourcePopupPlaylistAddPlaceholder"/>
-              </menu>
-            </placeholder>
-          </popup>
-        </ui>
-        '''
+        self.locations = [
+            'browser-popup', 'playlist-popup',
+            'podcast-episode-popup', 'queue-popup'
+            ]
+        search_types = ['Artist', 'Album', 'Track', 'Genre']
+        search_actions = {
+            'Artist': 'wikipedia-search-artist',
+            'Album': 'wikipedia-search-album',
+            'Track': 'wikipedia-search-track',
+            'Genre': 'wikipedia-search-genre'
+            }
+        search_functions = {
+            'Artist': self.search_artist,
+            'Album': self.search_album,
+            'Track': self.search_track,
+            'Genre': self.search_genre
+            }
         
-        self.shell = self.object
+        app = Gio.Application.get_default()
         
-        self.action_group = ActionGroup(
-            self.shell, 
-            'WikipediaSearchActionGroup'
-            )        
-        self.action_group.add_action(
-            func=self.null_function, 
-            action_name='SearchWikipedia', 
-            label='Search Wikipedia', 
-            tooltip=_('Search Wikipedia')
-            )
-        self.action_group.add_action(
-            func=self.search_artist, 
-            action_name='SearchWikipediaArtist', 
-            label='Artist', 
-            tooltip=_('Search the selected artist on Wikipedia')
-            )
-        self.action_group.add_action(
-            func=self.search_album, 
-            action_name='SearchWikipediaAlbum', 
-            label='Album', 
-            tooltip=_('Search the selected album on Wikipedia')
-            )
-        self.action_group.add_action(
-            func=self.search_track, 
-            action_name='SearchWikipediaTrack', 
-            label='Track', 
-            tooltip=_('Search the selected track on Wikipedia')
-            )
-        self.action_group.add_action(
-            func=self.search_genre, 
-            action_name='SearchWikipediaGenre', 
-            label='Genre', 
-            tooltip=_('Search the selected genre on Wikipedia')
-            )
-
-        self._appshell = ApplicationShell(self.shell)
-        self._appshell.insert_action_group(self.action_group)
-        self._appshell.add_browser_menuitems(
-            ui_str, 
-            'WikipediaSearchActionGroup'
-            )
+        section_item = Gio.MenuItem()
+        section = Gio.Menu()
+        for s in search_types:
+            action = Gio.SimpleAction(name=search_actions[s])
+            action.connect('activate', search_functions[s])
+            app.add_action(action)
+            
+            section_item.set_label(s)
+            section_item.set_detailed_action('app.' + search_actions[s])
+            section.append_item(section_item)
+        
+        menu = Gio.Menu()
+        menu.append_section(None, section)
+        
+        menu_item = Gio.MenuItem()
+        menu_item.set_label('Search Wikipedia')
+        menu_item.set_submenu(menu)
+        for location in self.locations:
+            app.add_plugin_menu_item(
+                location, 'wikipedia-search', menu_item
+                )
     
     def do_deactivate(self):
         self.log(self.do_deactivate.__name__, 'Deactivating plugin...')
         
-        self._appshell.cleanup()
+        app = Gio.Application.get_default()
+        for location in self.locations:
+            app.remove_plugin_menu_item(location, 'wikipedia-search')
 
     def get_metadata(self):
-        page = self.shell.props.selected_page
+        shell = self.object
+        page = shell.props.selected_page
         if not hasattr(page, 'get_entry_view'):
             return
         selected = page.get_entry_view().get_selected_entries()
@@ -167,7 +110,7 @@ class WikipediaSearchPlugin (GObject.Object, Peas.Activatable):
     def search_wikipedia(self, query):
         metadata = self.get_metadata()
         base_url = 'https://en.wikipedia.org/w/index.php?search='
-        query_url = urllib2.quote(metadata[query])
+        query_url = urllib.parse.quote(metadata[query])
         if query is 'genre':
             url = base_url + query_url + '+(music)'
         else:
@@ -177,18 +120,15 @@ class WikipediaSearchPlugin (GObject.Object, Peas.Activatable):
         
         webbrowser.open(url)
 
-    def search_artist (self, action, shell, *args):
+    def search_artist(self, action, shell, *args):
         self.search_wikipedia('artist')
 
-    def search_album (self, action, shell, *args):
+    def search_album(self, action, shell, *args):
         self.search_wikipedia('album')
 
-    def search_track (self, action, shell, *args):
+    def search_track(self, action, shell, *args):
         self.search_wikipedia('track')
 
-    def search_genre (self, action, shell, *args):
+    def search_genre(self, action, shell, *args):
         self.search_wikipedia('genre')
-    
-    def null_function(self, action, shell, *args):
-        pass
 
