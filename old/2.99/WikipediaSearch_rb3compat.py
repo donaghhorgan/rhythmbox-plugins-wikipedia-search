@@ -609,8 +609,8 @@ class ApplicationShell(object):
                         # Iterate through submenus, add menu items to each 
                         # and add each sub menu to the app
                         for submenu in submenus:
-                            menu = Gio.Menu()
-                                                        
+                            section = Gio.Menu()
+                            
                             submenu_items = submenu.findall('.//menuitem')
                             for submenu_item in submenu_items:
                                 submenu_item_name = submenu_item.attrib['name']
@@ -622,12 +622,15 @@ class ApplicationShell(object):
                                 submenu_item.set_detailed_action('win.' + submenu_item_action)
                                 submenu_item.set_label(act.label)
                                 
-                                menu.append_item(submenu_item)
+                                section.append_item(submenu_item)
                             
                             submenu_name = submenu.attrib['name']
                             submenu_action = submenu.attrib['action']
                             
                             act = group.get_action(submenu_action)
+                            
+                            menu = Gio.Menu()
+                            menu.append_section(None, section)
                             
                             item = Gio.MenuItem()
                             item.set_label(act.label)
