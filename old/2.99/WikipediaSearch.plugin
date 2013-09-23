@@ -2,6 +2,7 @@
 Loader=python
 Module=WikipediaSearch
 IAge=2
+Depends=rb
 Name=Wikipedia search
 Description=Search for selected artist, album, track or genre at the click of a button.
 Authors=Donagh Horgan <donagh.horgan@gmail.com>
